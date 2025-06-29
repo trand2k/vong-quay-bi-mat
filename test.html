@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vòng quay bí mật 🔄</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    textarea {
+      width: 300px;
+      font-size: 1rem;
+      padding: 0.5rem;
+      resize: vertical;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      margin: 0.25rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: #4f46e5;
+      color: white;
+    }
+
+    #wheel {
+      width: 300px;
+      height: 300px;
+      border: 8px solid #ccc;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin: 2rem 0;
+      transition: transform 1.5s ease-out;
+      background: gray;
+    }
+
+    .hiddenText {
+      color: #fff;
+      text-align: center;
+      padding: 0 10px;
+    }
+
+    .result {
+      font-size: 1.5rem;
+      color: #111;
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+
+    .option-list {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      margin-top: 1rem;
+      max-width: 320px;
+      display: none;
+    }
+
+    .option-list ul {
+      padding-left: 1.2rem;
+    }
+
+    .option-list li {
+      margin-bottom: 0.3rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌀 Vòng quay bí mật</h1>
+
+  <textarea id="optionInput" rows="5" placeholder="Nhập các yêu cầu, mỗi dòng là 1 yêu cầu..."></textarea>
+
+  <div style="margin: 0.5rem 0;">
+    <label>
+      <input type="checkbox" id="removeSelected" />
+      Xóa option đã chọn khỏi vòng quay
+    </label>
+  </div>
+
+  <div>
+    <button onclick="addOption()">Gửi vào hũ</button>
+    <button onclick="spinWheel()">Quay vòng</button>
+    <button onclick="toggleOptionList()">Xem tất cả yêu cầu</button>
+    <button onclick="removeAllOptions()" style="background-color: #dc2626;">🧨 Xóa toàn bộ yêu cầu</button>
+  </div>
+
+  <div id="wheel">
+    <div class="hiddenText">???</div>
+  </div>
+
+  <div class="result" id="result"></div>
+
+  <div class="option-list" id="optionList">
+    <strong>🎯 Danh sách yêu cầu đã bỏ vào hũ:</strong>
+    <ul id="optionUl"></ul>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <script>
+    // Firebase config của bạn
+    const firebaseConfig = {
+      apiKey: "AIzaSyA7CfGZlp3D9YP8TgG20r3aBB0GIEp-ldw",
+      authDomain: "vongquay-realtim.firebaseapp.com",
+      databaseURL: "https://vongquay-realtim-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "vongquay-realtim",
+      storageBucket: "vongquay-realtim.firebasestorage.app",
+      messagingSenderId: "458543939964",
+      appId: "1:458543939964:web:be54dd732cf1982e5524f9",
+      measurementId: "G-EZ2C89E413"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let spinning = false;
+    let totalRotation = 0;
+    const password = "123456";
+
+    function addOption() {
+      const input = document.getElementById('optionInput');
+      const raw = input.value.trim();
+      if (!raw) return;
+
+      const lines = raw.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+      lines.forEach(opt => {
+        const newRef = db.ref("options").push();
+        newRef.set(opt);
+      });
+
+      input.value = '';
+      alert(`✅ Đã thêm ${lines.length} yêu cầu vào hũ!`);
+    }
+
+    function updateOptionList(options) {
+      const ul = document.getElementById('optionUl');
+      ul.innerHTML = "";
+      options.forEach(opt => {
+        const li = document.createElement('li');
+        li.innerText = opt.value;
+        ul.appendChild(li);
+      });
+    }
+    
+    function removeAllOptions() {
+	  const confirmDelete = confirm("⚠️ Bạn có chắc chắn muốn xóa toàn bộ yêu cầu trong hũ không?");
+	  if (confirmDelete) {
+	    db.ref("options").remove().then(() => {
+	      alert("🗑️ Đã xóa toàn bộ yêu cầu!");
+	      document.getElementById('optionList').style.display = 'none';
+	      document.getElementById('result').innerText = '';
+	      document.querySelector('.hiddenText').innerText = '???';
+	    });
+	  }
+	}
+
+
+    function updateWheelBackground(options) {
+      if (options.length === 0) {
+        document.getElementById('wheel').style.background = 'gray';
+        return;
+      }
+
+      const colors = generateColors(options.length);
+      const percent = 100 / options.length;
+      let gradient = "conic-gradient(";
+      options.forEach((opt, i) => {
+        const start = i * percent;
+        const end = (i + 1) * percent;
+        gradient += `${colors[i]} ${start}% ${end}%, `;
+      });
+      gradient = gradient.slice(0, -2) + ")";
+      document.getElementById('wheel').style.background = gradient;
+    }
+
+    function generateColors(n) {
+      const hues = [...Array(n).keys()].map(i => Math.floor(i * (360 / n)));
+      return hues.map(h => `hsl(${h}, 70%, 60%)`);
+    }
+
+    function spinWheel() {
+      if (spinning) return;
+      spinning = true;
+      document.getElementById('result').innerText = '';
+      document.querySelector('.hiddenText').innerText = '???';
+
+      db.ref("options").once("value", snapshot => {
+        const data = snapshot.val();
+        if (!data) {
+          alert("Không có yêu cầu nào để quay!");
+          spinning = false;
+          return;
+        }
+
+        const entries = Object.entries(data); // [ [id, value], ... ]
+        const additionalRotation = 360 * (5 + Math.floor(Math.random() * 3));
+        totalRotation += additionalRotation;
+        document.getElementById('wheel').style.transform = `rotate(${totalRotation}deg)`;
+
+        setTimeout(() => {
+          const randomIndex = Math.floor(Math.random() * entries.length);
+          const [key, value] = entries[randomIndex];
+          document.querySelector('.hiddenText').innerText = value;
+          document.getElementById('result').innerText = `🎉 Kết quả: "${value}"`;
+
+          const shouldRemove = document.getElementById('removeSelected').checked;
+          if (shouldRemove) {
+            db.ref("options").child(key).remove();
+          }
+
+          spinning = false;
+        }, 1500);
+      });
+    }
+
+    function toggleOptionList() {
+      const list = document.getElementById('optionList');
+      if (list.style.display === 'block') {
+        list.style.display = 'none';
+        return;
+      }
+
+      const entered = prompt("🔐 Nhập mật khẩu để xem danh sách yêu cầu:");
+      if (entered === password) {
+        db.ref("options").once("value", snapshot => {
+          const data = snapshot.val() || {};
+          const entries = Object.entries(data).map(([id, value]) => ({ id, value }));
+          updateOptionList(entries);
+          list.style.display = 'block';
+        });
+      } else {
+        alert("❌ Sai mật khẩu!");
+      }
+    }
+
+    // Realtime update background khi option thay đổi
+    db.ref("options").on("value", snapshot => {
+      const data = snapshot.val() || {};
+      const entries = Object.entries(data).map(([id, value]) => ({ id, value }));
+      updateWheelBackground(entries);
+    });
+  </script>
+</body>
+</html>
