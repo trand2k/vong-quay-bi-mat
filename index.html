@@ -229,6 +229,81 @@
       color: #374151;
       cursor: pointer;
     }
+
+    .topic-filter-panel {
+      background: #fff;
+      border: 1px solid #c7d2fe;
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      max-width: 480px;
+      width: 100%;
+      margin-bottom: 0.75rem;
+    }
+
+    .topic-filter-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .topic-filter-header span {
+      font-weight: 700;
+      color: #312e81;
+      font-size: 0.95rem;
+    }
+
+    .topic-filter-header .sel-count {
+      font-size: 0.8rem;
+      background: #e0e7ff;
+      color: #4338ca;
+      border-radius: 20px;
+      padding: 1px 9px;
+      font-weight: 600;
+    }
+
+    .topic-filter-body {
+      display: none;
+      margin-top: 0.6rem;
+    }
+
+    .topic-filter-body.open { display: block; }
+
+    .filter-actions {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .filter-actions button {
+      font-size: 0.78rem;
+      padding: 0.25rem 0.7rem;
+      background: #e0e7ff;
+      color: #3730a3;
+      border-radius: 6px;
+    }
+
+    .filter-actions button:hover { background: #c7d2fe; }
+
+    .topic-checkbox-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3rem 0.6rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .topic-checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.85rem;
+      color: #374151;
+      cursor: pointer;
+    }
+
+    .topic-checkbox-item input { cursor: pointer; accent-color: #4f46e5; }
   </style>
 </head>
 <body>
@@ -246,6 +321,20 @@
   <div class="result-box" id="result">
     <div id="topicBadge"></div>
     <div id="resultText">—</div>
+  </div>
+
+  <div class="topic-filter-panel">
+    <div class="topic-filter-header" onclick="toggleFilterBody()">
+      <span>🗂 Chọn chủ đề để quay</span>
+      <span class="sel-count" id="selCount">Tất cả</span>
+    </div>
+    <div class="topic-filter-body" id="filterBody">
+      <div class="filter-actions">
+        <button onclick="selectAllTopics()">✅ Chọn tất cả</button>
+        <button onclick="deselectAllTopics()">⬜ Bỏ chọn tất cả</button>
+      </div>
+      <div class="topic-checkbox-list" id="topicCheckboxList"></div>
+    </div>
   </div>
 
   <div class="controls">
@@ -441,9 +530,45 @@
       return [...Array(n).keys()].map(i => `hsl(${Math.floor(i * 360 / n)}, 65%, 62%)`);
     }
 
-    function updateWheel() {
+    function getCheckedTopics() {
+      return [...document.querySelectorAll('.topic-cb:checked')].map(cb => cb.value);
+    }
+
+    function updateSelCount() {
+      const all = document.querySelectorAll('.topic-cb').length;
+      const checked = getCheckedTopics().length;
+      const el = document.getElementById('selCount');
+      el.textContent = checked === all ? 'Tất cả' : checked + '/' + all + ' chủ đề';
+    }
+
+    function getFilteredItems() {
       const data = loadQuestions();
-      const items = flatList(data);
+      const checked = getCheckedTopics();
+      const list = [];
+      for (const topic of checked) {
+        for (const q of (data[topic] || [])) list.push({ topic, question: q });
+      }
+      return list;
+    }
+
+    function toggleFilterBody() {
+      document.getElementById('filterBody').classList.toggle('open');
+    }
+
+    function selectAllTopics() {
+      document.querySelectorAll('.topic-cb').forEach(cb => cb.checked = true);
+      updateSelCount();
+      updateWheel();
+    }
+
+    function deselectAllTopics() {
+      document.querySelectorAll('.topic-cb').forEach(cb => cb.checked = false);
+      updateSelCount();
+      updateWheel();
+    }
+
+    function updateWheel() {
+      const items = getFilteredItems();
       const wheel = document.getElementById('wheel');
       if (items.length === 0) {
         wheel.style.background = '#c7d2fe';
@@ -460,8 +585,7 @@
 
     function spinWheel() {
       if (spinning) return;
-      const data = loadQuestions();
-      const items = flatList(data);
+      const items = getFilteredItems();
       if (items.length === 0) {
         alert("Không còn câu hỏi nào! Hãy thêm câu hỏi hoặc khôi phục mặc định.");
         return;
@@ -499,14 +623,39 @@
 
     function populateTopicSelect() {
       const data = loadQuestions();
+      const topics = Object.keys(data);
+
+      // Populate add-panel topic select
       const sel = document.getElementById('topicSelect');
       sel.innerHTML = '';
-      Object.keys(data).forEach(t => {
+      topics.forEach(t => {
         const opt = document.createElement('option');
         opt.value = t;
         opt.textContent = t;
         sel.appendChild(opt);
       });
+
+      // Populate checkbox list — keep previously checked topics checked
+      const prevChecked = new Set(getCheckedTopics());
+      const list = document.getElementById('topicCheckboxList');
+      list.innerHTML = '';
+      topics.forEach(t => {
+        const lbl = document.createElement('label');
+        lbl.className = 'topic-checkbox-item';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.className = 'topic-cb';
+        cb.value = t;
+        // Check if previously selected, or default to all checked
+        cb.checked = prevChecked.size === 0 ? true : prevChecked.has(t);
+        cb.addEventListener('change', () => { updateSelCount(); updateWheel(); });
+        lbl.appendChild(cb);
+        lbl.appendChild(document.createTextNode(t));
+        list.appendChild(lbl);
+      });
+
+      updateSelCount();
+      updateWheel();
     }
 
     function addQuestion() {
