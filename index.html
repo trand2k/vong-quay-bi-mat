@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>IELTS Speaking Part 1 – Vòng Quay 🔄</title>
+  <title>IELTS Speaking – Vòng Quay Luyện Tập 🔄</title>
   <style>
     * { box-sizing: border-box; }
 
@@ -304,12 +304,41 @@
     }
 
     .topic-checkbox-item input { cursor: pointer; accent-color: #4f46e5; }
+
+    .part-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .part-tab {
+      padding: 0.4rem 1.3rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border: 2px solid #4f46e5;
+      border-radius: 20px;
+      cursor: pointer;
+      background: #fff;
+      color: #4f46e5;
+    }
+
+    .part-tab.active {
+      background: #4f46e5;
+      color: #fff;
+    }
+
+    .part-tab:hover:not(.active) { background: #e0e7ff; }
   </style>
 </head>
 <body>
 
-  <h1>🌀 IELTS Speaking Part 1</h1>
-  <p class="subtitle">Quay vòng để lấy câu hỏi ngẫu nhiên!</p>
+  <h1 id="mainTitle">🌀 IELTS Speaking Part 1</h1>
+  <p class="subtitle">Quay vòng để lấy câu hỏi / cue card ngẫu nhiên!</p>
+
+  <div class="part-tabs">
+    <button class="part-tab active" id="tab1" onclick="switchPart(1)">Part 1 – Questions</button>
+    <button class="part-tab" id="tab2" onclick="switchPart(2)">Part 2 – Cue Cards</button>
+  </div>
 
   <div class="wheel-wrapper">
     <div class="wheel-pointer"></div>
@@ -501,18 +530,117 @@
       ]
     };
 
-    const STORAGE_KEY = "ielts_sp1_questions";
+    const DEFAULT_QUESTIONS_P2 = {
+      "A helpful / kind / inspiring person": [
+        "Describe a person who often helps others",
+        "Describe a person who likes to look after the natural world",
+        "Describe a good friend who is important to you",
+        "Describe a good habit your friend has",
+        "Describe a person who makes plans a lot",
+        "Describe an old person you enjoy talking to"
+      ],
+      "A talented / famous person": [
+        "Describe a famous person you would like to meet",
+        "Describe a popular person",
+        "Describe a creative person you admire",
+        "Describe a successful sportsperson",
+        "Describe a friend who is good at music"
+      ],
+      "A specific person (friend / family)": [
+        "Describe a child who loves drawing",
+        "Describe a person working in a family business",
+        "Describe a family member you felt proud of"
+      ],
+      "A place you like / enjoy": [
+        "Describe a city you enjoyed visiting",
+        "Describe a natural place",
+        "Describe your favourite place in your house"
+      ],
+      "A journey / trip": [
+        "Describe a long journey you had",
+        "Describe a trip you would like to go"
+      ],
+      "A job / future plan": [
+        "Describe a perfect job",
+        "Describe a short-term job in a foreign country"
+      ],
+      "Learning / self-development": [
+        "Describe a person who learned something without a teacher",
+        "Describe a subject of science you want to learn",
+        "Describe a positive change in your routine"
+      ],
+      "Technology / app": [
+        "Describe a piece of technology",
+        "Describe a program or app"
+      ],
+      "Online content": [
+        "Describe something interesting on social media"
+      ],
+      "A memorable experience": [
+        "Describe an exciting activity",
+        "Describe an occasion when many people were smiling",
+        "Describe a time you waited for something special"
+      ],
+      "A negative experience": [
+        "Describe an event you didn't enjoy",
+        "Describe a movie you were disappointed about"
+      ],
+      "A situation / problem": [
+        "Describe a time you broke something",
+        "Describe a time electricity went off",
+        "Describe a time you got lost"
+      ],
+      "Interaction with others": [
+        "Describe a time you gave advice",
+        "Describe an important decision with others",
+        "Describe a time someone apologized"
+      ],
+      "Language / communication": [
+        "Describe the first time you spoke a foreign language"
+      ],
+      "Food – A meal": [
+        "Describe a great dinner",
+        "Describe an unusual meal"
+      ],
+      "Something important / useful": [
+        "Describe something you can't live without",
+        "Describe a book you found useful",
+        "Describe a family item"
+      ],
+      "Childhood item": [
+        "Describe a toy you liked"
+      ],
+      "Nature / animal": [
+        "Describe a wild animal",
+        "Describe something you saw in the sky"
+      ],
+      "Standalone topics": [
+        "Describe a time when you were not allowed to use your phone",
+        "Describe a time when you received good service",
+        "Describe an interesting traditional story"
+      ]
+    };
+
+    let currentPart = 1;
+
+    function storageKey() {
+      return currentPart === 1 ? 'ielts_sp1_questions' : 'ielts_sp2_questions';
+    }
+
+    function defaultData() {
+      return currentPart === 1 ? DEFAULT_QUESTIONS : DEFAULT_QUESTIONS_P2;
+    }
 
     function loadQuestions() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem(storageKey());
         if (raw) return JSON.parse(raw);
       } catch(e) {}
-      return JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+      return JSON.parse(JSON.stringify(defaultData()));
     }
 
     function saveQuestions(data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(storageKey(), JSON.stringify(data));
     }
 
     function flatList(data) {
@@ -738,7 +866,7 @@
 
     function resetToDefaults() {
       if (!confirm("⚠️ Khôi phục toàn bộ câu hỏi về mặc định? Các câu đã thêm sẽ bị mất.")) return;
-      saveQuestions(JSON.parse(JSON.stringify(DEFAULT_QUESTIONS)));
+      saveQuestions(JSON.parse(JSON.stringify(defaultData())));
       updateWheel();
       populateTopicSelect();
       renderOptionList();
@@ -746,6 +874,21 @@
       document.getElementById('resultText').textContent = '—';
       document.getElementById('topicBadge').textContent = '';
       alert("✅ Đã khôi phục câu hỏi mặc định!");
+    }
+
+    function switchPart(part) {
+      currentPart = part;
+      document.getElementById('tab1').classList.toggle('active', part === 1);
+      document.getElementById('tab2').classList.toggle('active', part === 2);
+      document.getElementById('mainTitle').textContent =
+        part === 1 ? '🌀 IELTS Speaking Part 1' : '🌀 IELTS Speaking Part 2';
+      document.querySelector('.hiddenText').textContent = 'Nhấn để quay!';
+      document.getElementById('resultText').textContent = '—';
+      document.getElementById('topicBadge').textContent = '';
+      document.getElementById('optionList').style.display = 'none';
+      document.getElementById('addPanel').style.display = 'none';
+      document.getElementById('filterBody').classList.remove('open');
+      populateTopicSelect();
     }
 
     updateWheel();
