@@ -328,6 +328,72 @@
     }
 
     .part-tab:hover:not(.active) { background: #e0e7ff; }
+
+    /* ── Timer ── */
+    .timer-box {
+      background: #fff;
+      border: 2px solid #6366f1;
+      border-radius: 14px;
+      padding: 0.8rem 1.2rem;
+      max-width: 480px;
+      width: 100%;
+      margin: 0 0 0.75rem;
+      display: none;
+    }
+
+    .timer-phase {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+
+    .timer-phase.prep  { color: #d97706; }
+    .timer-phase.speak { color: #16a34a; }
+    .timer-phase.done  { color: #6b7280; }
+
+    .timer-display {
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: #312e81;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+
+    .timer-display.warn { color: #dc2626; }
+
+    .timer-bar-wrap {
+      width: 100%;
+      height: 8px;
+      background: #e0e7ff;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 0.6rem;
+    }
+
+    .timer-bar {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 1s linear, background 0.3s;
+      background: #6366f1;
+    }
+
+    .timer-bar.prep-bar  { background: #f59e0b; }
+    .timer-bar.speak-bar { background: #22c55e; }
+    .timer-bar.warn-bar  { background: #dc2626; }
+
+    .timer-btn-row {
+      display: flex;
+      gap: 0.4rem;
+      justify-content: center;
+    }
+
+    .timer-btn-row button {
+      font-size: 0.82rem;
+      padding: 0.3rem 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -350,6 +416,17 @@
   <div class="result-box" id="result">
     <div id="topicBadge"></div>
     <div id="resultText">—</div>
+  </div>
+
+  <div class="timer-box" id="timerBox">
+    <div class="timer-phase" id="timerPhase">Chuẩn bị</div>
+    <div class="timer-display" id="timerDisplay">1:00</div>
+    <div class="timer-bar-wrap"><div class="timer-bar prep-bar" id="timerBar"></div></div>
+    <div class="timer-btn-row">
+      <button onclick="startTimer()" id="btnStartTimer">▶ Bắt đầu</button>
+      <button class="secondary" onclick="skipPhase()" id="btnSkip">⏭ Bỏ qua</button>
+      <button class="danger" onclick="stopTimer()">⏹ Dừng</button>
+    </div>
   </div>
 
   <div class="topic-filter-panel">
@@ -736,6 +813,10 @@
         document.getElementById('topicBadge').innerHTML = `<span class="topic-badge">📌 ${picked.topic}</span>`;
         document.getElementById('resultText').textContent = picked.question;
 
+        // Show & reset timer after spin
+        stopTimer();
+        showTimer(true);
+
         if (document.getElementById('removeSelected').checked) {
           const fresh = loadQuestions();
           fresh[picked.topic] = (fresh[picked.topic] || []).filter(q => q !== picked.question);
@@ -876,7 +957,153 @@
       alert("✅ Đã khôi phục câu hỏi mặc định!");
     }
 
+    // ── Timer ────────────────────────────────────────────────────────────
+    let timerInterval = null;
+    let timerSecondsLeft = 0;
+    let timerTotalSeconds = 0;
+    let timerPhase = 'idle'; // 'prep' | 'speak' | 'idle'
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return m + ':' + String(sec).padStart(2, '0');
+    }
+
+    function updateTimerUI() {
+      const display = document.getElementById('timerDisplay');
+      const bar = document.getElementById('timerBar');
+      const phase = document.getElementById('timerPhase');
+
+      display.textContent = formatTime(timerSecondsLeft);
+      const pct = timerTotalSeconds > 0 ? (timerSecondsLeft / timerTotalSeconds) * 100 : 100;
+      bar.style.width = pct + '%';
+
+      const warn = timerSecondsLeft <= 10;
+      display.classList.toggle('warn', warn);
+
+      if (timerPhase === 'prep') {
+        phase.textContent = '📓 Chuẩn bị (1 phút)';
+        phase.className = 'timer-phase prep';
+        bar.className = 'timer-bar ' + (warn ? 'warn-bar' : 'prep-bar');
+      } else if (timerPhase === 'speak') {
+        phase.textContent = '🎤 Trả lời (2 phút)';
+        phase.className = 'timer-phase speak';
+        bar.className = 'timer-bar ' + (warn ? 'warn-bar' : 'speak-bar');
+      }
+    }
+
+    function beep(freq, duration) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.4, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + duration);
+      } catch(e) {}
+    }
+
+    function startSpeakPhase() {
+      timerPhase = 'speak';
+      timerSecondsLeft = 120;
+      timerTotalSeconds = 120;
+      document.getElementById('btnSkip').textContent = '⏭ Bỏ qua';
+      beep(880, 0.3);
+      updateTimerUI();
+    }
+
+    function startTimer() {
+      if (timerInterval) return;
+      if (timerPhase === 'idle' || timerPhase === 'done') {
+        // start from prep
+        timerPhase = 'prep';
+        timerSecondsLeft = 60;
+        timerTotalSeconds = 60;
+        document.getElementById('btnStartTimer').textContent = '■ Đang chạy...';
+        document.getElementById('btnStartTimer').disabled = true;
+        updateTimerUI();
+      }
+      timerInterval = setInterval(() => {
+        timerSecondsLeft--;
+        updateTimerUI();
+        if (timerSecondsLeft <= 0) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          if (timerPhase === 'prep') {
+            beep(660, 0.2);
+            setTimeout(() => beep(880, 0.3), 250);
+            startSpeakPhase();
+            timerInterval = setInterval(() => {
+              timerSecondsLeft--;
+              updateTimerUI();
+              if (timerSecondsLeft <= 0) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                timerPhase = 'done';
+                document.getElementById('timerPhase').textContent = '✅ Hết giờ!';
+                document.getElementById('timerPhase').className = 'timer-phase done';
+                document.getElementById('timerDisplay').textContent = '0:00';
+                document.getElementById('timerBar').style.width = '0%';
+                document.getElementById('btnStartTimer').textContent = '▶ Bắt đầu lại';
+                document.getElementById('btnStartTimer').disabled = false;
+                timerPhase = 'idle';
+                beep(440, 0.15);
+                setTimeout(() => beep(440, 0.15), 200);
+                setTimeout(() => beep(440, 0.15), 400);
+              }
+            }, 1000);
+          }
+        }
+      }, 1000);
+    }
+
+    function skipPhase() {
+      if (timerPhase === 'prep') {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        startSpeakPhase();
+        startTimer();
+      } else if (timerPhase === 'speak') {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        timerPhase = 'idle';
+        document.getElementById('timerPhase').textContent = '✅ Hết giờ!';
+        document.getElementById('timerPhase').className = 'timer-phase done';
+        document.getElementById('timerDisplay').textContent = '0:00';
+        document.getElementById('timerBar').style.width = '0%';
+        document.getElementById('btnStartTimer').textContent = '▶ Bắt đầu lại';
+        document.getElementById('btnStartTimer').disabled = false;
+      }
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerPhase = 'idle';
+      timerSecondsLeft = 60;
+      timerTotalSeconds = 60;
+      document.getElementById('timerPhase').textContent = 'Chuẩn bị';
+      document.getElementById('timerPhase').className = 'timer-phase prep';
+      document.getElementById('timerDisplay').textContent = '1:00';
+      document.getElementById('timerBar').style.width = '100%';
+      document.getElementById('timerBar').className = 'timer-bar prep-bar';
+      document.getElementById('btnStartTimer').textContent = '▶ Bắt đầu';
+      document.getElementById('btnStartTimer').disabled = false;
+    }
+
+    function showTimer(show) {
+      document.getElementById('timerBox').style.display = show ? 'block' : 'none';
+      if (!show) stopTimer();
+    }
+
     function switchPart(part) {
+      showTimer(false);
+      stopTimer();
       currentPart = part;
       document.getElementById('tab1').classList.toggle('active', part === 1);
       document.getElementById('tab2').classList.toggle('active', part === 2);
