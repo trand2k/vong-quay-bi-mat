@@ -3,261 +3,604 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Vòng quay bí mật 🔄</title>
+  <title>IELTS Speaking Part 1 – Vòng Quay 🔄</title>
   <style>
+    * { box-sizing: border-box; }
+
     body {
-      font-family: sans-serif;
-      background: #f0f4f8;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e0e7ff 0%, #f0fdf4 100%);
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem;
+      padding: 2rem 1rem;
     }
 
     h1 {
-      margin-bottom: 1rem;
-      color: #333;
+      margin-bottom: 0.5rem;
+      color: #312e81;
+      font-size: 1.8rem;
+      text-align: center;
     }
 
-    textarea {
-      width: 300px;
-      font-size: 1rem;
-      padding: 0.5rem;
-      resize: vertical;
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
     }
 
-    button {
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-      margin: 0.25rem;
-      cursor: pointer;
-      border: none;
-      border-radius: 5px;
-      background-color: #4f46e5;
-      color: white;
+    .wheel-wrapper {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 1rem 0;
     }
 
     #wheel {
-      width: 300px;
-      height: 300px;
-      border: 8px solid #ccc;
+      width: 320px;
+      height: 320px;
+      border: 8px solid #a5b4fc;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.5rem;
-      margin: 2rem 0;
-      transition: transform 1.5s ease-out;
-      background: gray;
+      font-size: 1.1rem;
+      transition: transform 2s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+      background: #c7d2fe;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(79,70,229,0.18);
     }
 
     .hiddenText {
       color: #fff;
       text-align: center;
-      padding: 0 10px;
+      padding: 0 20px;
+      font-weight: 600;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.25);
+      word-break: break-word;
+      font-size: 0.95rem;
+      line-height: 1.4;
     }
 
-    .result {
-      font-size: 1.5rem;
-      color: #111;
-      font-weight: bold;
-      margin-top: 1rem;
+    .wheel-pointer {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 28px solid #dc2626;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+      z-index: 10;
+    }
+
+    .result-box {
+      background: #fff;
+      border: 2px solid #6366f1;
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #312e81;
+      min-height: 3rem;
+      margin: 0.5rem 0 1rem;
+      word-break: break-word;
+      line-height: 1.5;
+    }
+
+    .topic-badge {
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: #e0e7ff;
+      color: #4338ca;
+      border-radius: 20px;
+      padding: 2px 10px;
+      margin-bottom: 6px;
+      display: inline-block;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 0.75rem;
+    }
+
+    button {
+      padding: 0.5rem 1.1rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background-color: #4f46e5;
+      color: white;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+
+    button:hover { background-color: #4338ca; }
+    button.danger { background-color: #dc2626; }
+    button.danger:hover { background-color: #b91c1c; }
+    button.secondary { background-color: #6b7280; }
+    button.secondary:hover { background-color: #4b5563; }
+
+    .add-panel {
+      background: #fff;
+      border: 1px solid #c7d2fe;
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      max-width: 480px;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+
+    .add-panel label {
+      display: block;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.4rem;
+    }
+
+    .add-panel select, .add-panel input[type="text"] {
+      width: 100%;
+      padding: 0.4rem 0.6rem;
+      border: 1px solid #a5b4fc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      margin-bottom: 0.6rem;
     }
 
     .option-list {
       background: #fff;
-      border: 1px solid #ccc;
-      padding: 1rem;
-      margin-top: 1rem;
-      max-width: 320px;
+      border: 1px solid #c7d2fe;
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      max-width: 480px;
+      width: 100%;
       display: none;
+      max-height: 55vh;
+      overflow-y: auto;
     }
 
-    .option-list ul {
+    .option-list h3 {
+      margin: 0 0 0.6rem;
+      color: #312e81;
+    }
+
+    .topic-section { margin-bottom: 1rem; }
+
+    .topic-section h4 {
+      background: #e0e7ff;
+      color: #3730a3;
+      border-radius: 6px;
+      padding: 3px 8px;
+      margin: 0 0 0.4rem;
+      font-size: 0.9rem;
+    }
+
+    .topic-section ul {
       padding-left: 1.2rem;
+      margin: 0;
     }
 
-    .option-list li {
-      margin-bottom: 0.3rem;
+    .topic-section li {
+      margin-bottom: 0.25rem;
+      font-size: 0.88rem;
+      color: #374151;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .topic-section li span { flex: 1; }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: #dc2626;
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .controls label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.9rem;
+      color: #374151;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <h1>🌀 Vòng quay bí mật</h1>
+  <h1>🌀 IELTS Speaking Part 1</h1>
+  <p class="subtitle">Quay vòng để lấy câu hỏi ngẫu nhiên!</p>
 
-  <textarea id="optionInput" rows="5" placeholder="Nhập các yêu cầu, mỗi dòng là 1 yêu cầu..."></textarea>
+  <div class="wheel-wrapper">
+    <div class="wheel-pointer"></div>
+    <div id="wheel" onclick="spinWheel()">
+      <div class="hiddenText">Nhấn để quay!</div>
+    </div>
+  </div>
 
-  <div style="margin: 0.5rem 0;">
+  <div class="result-box" id="result">
+    <div id="topicBadge"></div>
+    <div id="resultText">—</div>
+  </div>
+
+  <div class="controls">
+    <button onclick="spinWheel()">🎯 Quay ngẫu nhiên</button>
     <label>
       <input type="checkbox" id="removeSelected" />
-      Xóa option đã chọn khỏi vòng quay
+      Xóa câu đã quay
     </label>
   </div>
 
-  <div>
-    <button onclick="addOption()">Gửi vào hũ</button>
-    <button onclick="spinWheel()">Quay vòng</button>
-    <button onclick="toggleOptionList()">Xem tất cả yêu cầu</button>
-    <button onclick="removeAllOptions()" style="background-color: #dc2626;">🧨 Xóa toàn bộ yêu cầu</button>
+  <div class="btn-row">
+    <button class="secondary" onclick="toggleAddPanel()">➕ Thêm câu hỏi</button>
+    <button class="secondary" onclick="toggleOptionList()">📋 Xem tất cả câu hỏi</button>
+    <button class="danger" onclick="resetToDefaults()">🔄 Khôi phục mặc định</button>
   </div>
 
-  <div id="wheel">
-    <div class="hiddenText">???</div>
+  <div class="add-panel" id="addPanel" style="display:none;">
+    <label>Chủ đề:</label>
+    <select id="topicSelect"></select>
+    <label>Hoặc thêm chủ đề mới:</label>
+    <input type="text" id="newTopic" placeholder="Tên chủ đề mới (để trống nếu dùng chủ đề trên)" />
+    <label>Câu hỏi:</label>
+    <input type="text" id="newQuestion" placeholder="Nhập câu hỏi..." />
+    <button onclick="addQuestion()">✅ Thêm vào</button>
   </div>
-
-  <div class="result" id="result"></div>
 
   <div class="option-list" id="optionList">
-    <strong>🎯 Danh sách yêu cầu đã bỏ vào hũ:</strong>
-    <ul id="optionUl"></ul>
+    <h3>📋 Danh sách câu hỏi</h3>
+    <div id="optionContent"></div>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
   <script>
-    // Firebase config của bạn
-    const firebaseConfig = {
-      apiKey: "AIzaSyA7CfGZlp3D9YP8TgG20r3aBB0GIEp-ldw",
-      authDomain: "vongquay-realtim.firebaseapp.com",
-      databaseURL: "https://vongquay-realtim-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "vongquay-realtim",
-      storageBucket: "vongquay-realtim.firebasestorage.app",
-      messagingSenderId: "458543939964",
-      appId: "1:458543939964:web:be54dd732cf1982e5524f9",
-      measurementId: "G-EZ2C89E413"
+    const DEFAULT_QUESTIONS = {
+      "Views": [
+        "Do you like taking pictures of different views?",
+        "Do you prefer views in urban areas or rural areas?",
+        "Do you prefer views in your own country or in other countries?",
+        "Have you seen an unforgettable and beautiful view or scenery?"
+      ],
+      "Life stages": [
+        "Do you enjoy being the age you are now?",
+        "What did you often do with your friends in your childhood?",
+        "What do you think is the most important at the moment?",
+        "Do you have any plans for the next five years?",
+        "How do people remember each stage of their lives?",
+        "At what age do you think people are the happiest?"
+      ],
+      "Building": [
+        "Are there tall buildings near your home?",
+        "Do you take photos of buildings?",
+        "Is there a building that you would like to visit?"
+      ],
+      "Scenery": [
+        "Do you look out the window at the scenery when travelling by bus or car?",
+        "Do you prefer the mountains or the sea?",
+        "Do you like to take scenery pictures?",
+        "What are the most beautiful sights you have seen while travelling?"
+      ],
+      "Reading": [
+        "Do you like reading?",
+        "Do you prefer to read on paper or on a screen?",
+        "When do you need to read carefully, and when not?",
+        "Do you prefer scanning or detailed reading?"
+      ],
+      "Sports team": [
+        "Have you ever been part of a sports team?",
+        "Are team sports popular in your culture?",
+        "Do you like watching team games? Why?",
+        "What are the differences between team sports and individual sports?"
+      ],
+      "Walking": [
+        "Do you walk a lot?",
+        "Did you often go outside to have a walk when you were a child?",
+        "Why do people like to walk in parks?",
+        "Where would you like to take a long walk if you had the chance?",
+        "Where did you go for a walk lately?"
+      ],
+      "Typing": [
+        "Do you prefer typing or handwriting?",
+        "Do you type on a desktop or laptop keyboard every day?",
+        "When did you learn how to type on a keyboard?",
+        "How do you improve your typing?"
+      ],
+      "Food": [
+        "What is your favourite food?",
+        "What kind of food did you like when you were young?",
+        "Has your favourite food changed since you were a child?",
+        "Do you eat different foods at different times of the year?"
+      ],
+      "Hobby": [
+        "Do you have the same hobbies as your family members?",
+        "Do you have a hobby that you've had since childhood?",
+        "Did you have any hobbies when you were a child?",
+        "Do you have any hobbies?"
+      ],
+      "Gifts": [
+        "What gift have you received recently?",
+        "Have you ever sent handmade gifts to others?",
+        "Have you ever received a great gift?",
+        "What do you consider when choosing a gift?",
+        "Do you think you are good at choosing gifts?"
+      ],
+      "Day off": [
+        "When was the last time you had a few days off?",
+        "What do you usually do when you have days off?",
+        "Do you usually spend your days off with your parents or with your friends?",
+        "What would you like to do if you had a day off tomorrow?"
+      ],
+      "Keys": [
+        "Do you always bring a lot of keys with you?",
+        "Have you ever lost your keys?",
+        "Do you often forget the keys and lock yourself out?",
+        "Do you think it's a good idea to leave your keys with a neighbour?"
+      ],
+      "Morning time": [
+        "Do you like getting up early in the morning?",
+        "What do you usually do in the morning?",
+        "What did you do in the morning when you were little? Why?",
+        "Are there any differences between what you do in the morning now and what you did in the past?",
+        "Do you spend your mornings doing the same things on both weekends and weekdays? Why?"
+      ],
+      "Dreams": [
+        "Can you remember the dreams you had?",
+        "Do you share your dreams with others?",
+        "Do you think dreams have special meanings?",
+        "Do you want to make your dreams come true?"
+      ],
+      "Mirrors": [
+        "Do you like looking at yourself in the mirror? How often?",
+        "Have you ever bought mirrors?",
+        "Do you usually take a mirror with you?",
+        "Would you use mirrors to decorate your room?"
+      ],
+      "Childhood activities": [
+        "What are your favourite activities?",
+        "What were your favourite activities when you were a child?",
+        "Did you prefer to do activities alone or with a group of people when you were a child?",
+        "Are there any differences between the activities you liked when you were a child and those you like now?"
+      ],
+      "The city you live in": [
+        "Would you recommend your city to others?",
+        "What's the weather like where you live?",
+        "Are there people of different ages living in this city?",
+        "Are the people friendly in the city?",
+        "Is the city friendly to children and old people?",
+        "Do you often see your neighbors?",
+        "What city do you live in?",
+        "Do you like this city? Why?",
+        "How long have you lived in this city?",
+        "Are there big changes in this city?",
+        "Is this city your permanent residence?"
+      ],
+      "Pets and Animals": [
+        "What's your favourite animal? Why?",
+        "Where do you prefer to keep your pet, indoors or outdoors?",
+        "Have you ever had a pet before?",
+        "What is the most popular animal in Vietnam?"
+      ],
+      "Rules": [
+        "Are there any rules for students at your school?",
+        "Do you think students would benefit more from more rules?",
+        "Have you ever had a really dedicated teacher?",
+        "Do you prefer to have more or fewer rules at school?"
+      ]
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
 
-    let spinning = false;
-    let totalRotation = 0;
-    const password = "123456";
+    const STORAGE_KEY = "ielts_sp1_questions";
 
-    function addOption() {
-      const input = document.getElementById('optionInput');
-      const raw = input.value.trim();
-      if (!raw) return;
-
-      const lines = raw.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-      lines.forEach(opt => {
-        const newRef = db.ref("options").push();
-        newRef.set(opt);
-      });
-
-      input.value = '';
-      alert(`✅ Đã thêm ${lines.length} yêu cầu vào hũ!`);
+    function loadQuestions() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch(e) {}
+      return JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
     }
 
-    function updateOptionList(options) {
-      const ul = document.getElementById('optionUl');
-      ul.innerHTML = "";
-      options.forEach(opt => {
-        const li = document.createElement('li');
-        li.innerText = opt.value;
-        ul.appendChild(li);
-      });
+    function saveQuestions(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
-    
-    function removeAllOptions() {
-	  const confirmDelete = confirm("⚠️ Bạn có chắc chắn muốn xóa toàn bộ yêu cầu trong hũ không?");
-	  if (confirmDelete) {
-	    db.ref("options").remove().then(() => {
-	      alert("🗑️ Đã xóa toàn bộ yêu cầu!");
-	      document.getElementById('optionList').style.display = 'none';
-	      document.getElementById('result').innerText = '';
-	      document.querySelector('.hiddenText').innerText = '???';
-	    });
-	  }
-	}
 
-
-    function updateWheelBackground(options) {
-      if (options.length === 0) {
-        document.getElementById('wheel').style.background = 'gray';
-        return;
+    function flatList(data) {
+      const list = [];
+      for (const [topic, qs] of Object.entries(data)) {
+        for (const q of qs) list.push({ topic, question: q });
       }
-
-      const colors = generateColors(options.length);
-      const percent = 100 / options.length;
-      let gradient = "conic-gradient(";
-      options.forEach((opt, i) => {
-        const start = i * percent;
-        const end = (i + 1) * percent;
-        gradient += `${colors[i]} ${start}% ${end}%, `;
-      });
-      gradient = gradient.slice(0, -2) + ")";
-      document.getElementById('wheel').style.background = gradient;
+      return list;
     }
+
+    let totalRotation = 0;
+    let spinning = false;
 
     function generateColors(n) {
-      const hues = [...Array(n).keys()].map(i => Math.floor(i * (360 / n)));
-      return hues.map(h => `hsl(${h}, 70%, 60%)`);
+      return [...Array(n).keys()].map(i => `hsl(${Math.floor(i * 360 / n)}, 65%, 62%)`);
+    }
+
+    function updateWheel() {
+      const data = loadQuestions();
+      const items = flatList(data);
+      const wheel = document.getElementById('wheel');
+      if (items.length === 0) {
+        wheel.style.background = '#c7d2fe';
+        return;
+      }
+      const colors = generateColors(items.length);
+      const pct = 100 / items.length;
+      let grad = "conic-gradient(";
+      items.forEach((_, i) => {
+        grad += `${colors[i]} ${i * pct}% ${(i + 1) * pct}%, `;
+      });
+      wheel.style.background = grad.slice(0, -2) + ")";
     }
 
     function spinWheel() {
       if (spinning) return;
-      spinning = true;
-      document.getElementById('result').innerText = '';
-      document.querySelector('.hiddenText').innerText = '???';
-
-      db.ref("options").once("value", snapshot => {
-        const data = snapshot.val();
-        if (!data) {
-          alert("Không có yêu cầu nào để quay!");
-          spinning = false;
-          return;
-        }
-
-        const entries = Object.entries(data); // [ [id, value], ... ]
-        const additionalRotation = 360 * (5 + Math.floor(Math.random() * 3));
-        totalRotation += additionalRotation;
-        document.getElementById('wheel').style.transform = `rotate(${totalRotation}deg)`;
-
-        setTimeout(() => {
-          const randomIndex = Math.floor(Math.random() * entries.length);
-          const [key, value] = entries[randomIndex];
-          document.querySelector('.hiddenText').innerText = value;
-          document.getElementById('result').innerText = `🎉 Kết quả: "${value}"`;
-
-          const shouldRemove = document.getElementById('removeSelected').checked;
-          if (shouldRemove) {
-            db.ref("options").child(key).remove();
-          }
-
-          spinning = false;
-        }, 1500);
-      });
-    }
-
-    function toggleOptionList() {
-      const list = document.getElementById('optionList');
-      if (list.style.display === 'block') {
-        list.style.display = 'none';
+      const data = loadQuestions();
+      const items = flatList(data);
+      if (items.length === 0) {
+        alert("Không còn câu hỏi nào! Hãy thêm câu hỏi hoặc khôi phục mặc định.");
         return;
       }
 
-      const entered = prompt("🔐 Nhập mật khẩu để xem danh sách yêu cầu:");
-      if (entered === password) {
-        db.ref("options").once("value", snapshot => {
-          const data = snapshot.val() || {};
-          const entries = Object.entries(data).map(([id, value]) => ({ id, value }));
-          updateOptionList(entries);
-          list.style.display = 'block';
+      spinning = true;
+      document.getElementById('resultText').textContent = '—';
+      document.getElementById('topicBadge').textContent = '';
+      document.querySelector('.hiddenText').textContent = '...';
+
+      const extra = 360 * (5 + Math.floor(Math.random() * 4));
+      totalRotation += extra;
+      const wheel = document.getElementById('wheel');
+      wheel.style.transform = `rotate(${totalRotation}deg)`;
+
+      setTimeout(() => {
+        const idx = Math.floor(Math.random() * items.length);
+        const picked = items[idx];
+        document.querySelector('.hiddenText').textContent = picked.question;
+        document.getElementById('topicBadge').innerHTML = `<span class="topic-badge">📌 ${picked.topic}</span>`;
+        document.getElementById('resultText').textContent = picked.question;
+
+        if (document.getElementById('removeSelected').checked) {
+          const fresh = loadQuestions();
+          fresh[picked.topic] = (fresh[picked.topic] || []).filter(q => q !== picked.question);
+          if (fresh[picked.topic].length === 0) delete fresh[picked.topic];
+          saveQuestions(fresh);
+          updateWheel();
+          populateTopicSelect();
+        }
+
+        spinning = false;
+      }, 2100);
+    }
+
+    function populateTopicSelect() {
+      const data = loadQuestions();
+      const sel = document.getElementById('topicSelect');
+      sel.innerHTML = '';
+      Object.keys(data).forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        sel.appendChild(opt);
+      });
+    }
+
+    function addQuestion() {
+      const newTopic = document.getElementById('newTopic').value.trim();
+      const selTopic = document.getElementById('topicSelect').value;
+      const topic = newTopic || selTopic;
+      const question = document.getElementById('newQuestion').value.trim();
+
+      if (!topic) { alert("Vui lòng chọn hoặc nhập chủ đề!"); return; }
+      if (!question) { alert("Vui lòng nhập câu hỏi!"); return; }
+
+      const data = loadQuestions();
+      if (!data[topic]) data[topic] = [];
+      if (data[topic].includes(question)) { alert("Câu hỏi này đã tồn tại!"); return; }
+      data[topic].push(question);
+      saveQuestions(data);
+
+      document.getElementById('newQuestion').value = '';
+      document.getElementById('newTopic').value = '';
+      populateTopicSelect();
+      updateWheel();
+      renderOptionList();
+      alert('✅ Đã thêm vào chủ đề "' + topic + '"!');
+    }
+
+    function renderOptionList() {
+      const data = loadQuestions();
+      const container = document.getElementById('optionContent');
+      container.innerHTML = '';
+      for (const [topic, qs] of Object.entries(data)) {
+        const sec = document.createElement('div');
+        sec.className = 'topic-section';
+        const h4 = document.createElement('h4');
+        h4.textContent = topic + ' (' + qs.length + ')';
+        sec.appendChild(h4);
+        const ul = document.createElement('ul');
+        qs.forEach((q, i) => {
+          const li = document.createElement('li');
+          const span = document.createElement('span');
+          span.textContent = q;
+          const btn = document.createElement('button');
+          btn.className = 'del-btn';
+          btn.title = 'Xóa câu này';
+          btn.textContent = '✕';
+          btn.onclick = () => deleteQuestion(topic, i);
+          li.appendChild(span);
+          li.appendChild(btn);
+          ul.appendChild(li);
         });
-      } else {
-        alert("❌ Sai mật khẩu!");
+        sec.appendChild(ul);
+        container.appendChild(sec);
       }
     }
 
-    // Realtime update background khi option thay đổi
-    db.ref("options").on("value", snapshot => {
-      const data = snapshot.val() || {};
-      const entries = Object.entries(data).map(([id, value]) => ({ id, value }));
-      updateWheelBackground(entries);
-    });
+    function deleteQuestion(topic, index) {
+      if (!confirm("Xóa câu hỏi này?")) return;
+      const data = loadQuestions();
+      data[topic].splice(index, 1);
+      if (data[topic].length === 0) delete data[topic];
+      saveQuestions(data);
+      renderOptionList();
+      updateWheel();
+      populateTopicSelect();
+    }
+
+    function toggleAddPanel() {
+      const p = document.getElementById('addPanel');
+      p.style.display = p.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function toggleOptionList() {
+      const p = document.getElementById('optionList');
+      if (p.style.display === 'none') {
+        renderOptionList();
+        p.style.display = 'block';
+      } else {
+        p.style.display = 'none';
+      }
+    }
+
+    function resetToDefaults() {
+      if (!confirm("⚠️ Khôi phục toàn bộ câu hỏi về mặc định? Các câu đã thêm sẽ bị mất.")) return;
+      saveQuestions(JSON.parse(JSON.stringify(DEFAULT_QUESTIONS)));
+      updateWheel();
+      populateTopicSelect();
+      renderOptionList();
+      document.querySelector('.hiddenText').textContent = 'Nhấn để quay!';
+      document.getElementById('resultText').textContent = '—';
+      document.getElementById('topicBadge').textContent = '';
+      alert("✅ Đã khôi phục câu hỏi mặc định!");
+    }
+
+    updateWheel();
+    populateTopicSelect();
   </script>
 </body>
 </html>
