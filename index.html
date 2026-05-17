@@ -394,6 +394,55 @@
       font-size: 0.82rem;
       padding: 0.3rem 0.9rem;
     }
+
+    /* ── Hint ── */
+    button.hint-btn { background: #d97706; }
+    button.hint-btn:hover { background: #b45309; }
+
+    .hint-panel {
+      background: #fffbeb;
+      border: 2px solid #fcd34d;
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      max-width: 480px;
+      width: 100%;
+      margin-bottom: 0.75rem;
+      text-align: left;
+    }
+
+    .hint-answer {
+      font-size: 0.88rem;
+      color: #374151;
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+
+    .hint-vocab {
+      margin-top: 0.7rem;
+      padding-top: 0.6rem;
+      border-top: 1px dashed #fcd34d;
+    }
+
+    .hint-vocab-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .hint-vocab ul {
+      padding-left: 1.2rem;
+      margin: 0;
+    }
+
+    .hint-vocab li {
+      font-size: 0.83rem;
+      color: #78350f;
+      margin-bottom: 0.25rem;
+      line-height: 1.55;
+    }
   </style>
 </head>
 <body>
@@ -416,6 +465,15 @@
   <div class="result-box" id="result">
     <div id="topicBadge"></div>
     <div id="resultText">—</div>
+  </div>
+
+  <div id="hintRow" class="btn-row" style="display:none;">
+    <button class="hint-btn" id="hintBtn" onclick="toggleHint()">💡 Xem gợi ý</button>
+  </div>
+
+  <div class="hint-panel" id="hintPanel" style="display:none;">
+    <div class="hint-answer" id="hintAnswer"></div>
+    <div class="hint-vocab" id="hintVocab"></div>
   </div>
 
   <div class="timer-box" id="timerBox">
@@ -604,6 +662,23 @@
         "Do you think students would benefit more from more rules?",
         "Have you ever had a really dedicated teacher?",
         "Do you prefer to have more or fewer rules at school?"
+      ],
+      "Cars": [
+        "Do you think car colours are important?",
+        "Did you enjoy traveling by car when you were a kid?",
+        "What types of cars do you like?",
+        "Do you prefer to be a driver or a passenger?",
+        "What do you usually do when there is a traffic jam?"
+      ],
+      "Watch": [
+        "Do you wear a watch?",
+        "Have you ever got a watch as a gift?",
+        "Why do some people wear expensive watches?",
+        "Do you think it is important to wear a watch? Why?"
+      ],
+      "Tidiness": [
+        "Do you like to keep things tidy?",
+        "Did you use to keep your room tidy as a child?"
       ]
     };
 
@@ -698,6 +773,162 @@
       ]
     };
 
+    // ── Hint scripts (question text → {answer, vocab[]}) ───────────────
+    const HINTS = {
+      // Childhood activities
+      "What are your favourite activities?": {
+        answer: "Lately, I've been really into collecting leafy plants in my free time. Unlike traditional flowers, these plants are grown mainly for the unique beauty of their leaves. I can spend hours admiring the incredible variety of shapes, colours, and intricate patterns on them, which is a great way to wind down after a long day.",
+        vocab: []
+      },
+      "What were your favourite activities when you were a child?": {
+        answer: "Well, looking back, I was absolutely obsessed with making clothes for my dolls. I remember I used to visit a local tailor's shop near my house and ask if I could have their leftover fabric scraps. After collecting a bunch of those colourful offcuts, I would spend hours on end trying to hand-sew tiny dresses and outfits. It was definitely my favourite pastime and it really sparked my creativity as a kid.",
+        vocab: [
+          "Obsessed with: Cực kỳ đam mê / thích thú cái gì đó",
+          "Leftover fabric scraps / Offcuts: Những mảnh vải vụn, vải thừa",
+          "Spend hours on end: Dành hàng giờ liền (không ngừng nghỉ)",
+          "Spark my creativity: Khơi nguồn sáng tạo"
+        ]
+      },
+      "Did you prefer to do activities alone or with a group of people when you were a child?": {
+        answer: "I definitely preferred being with others, especially to hang out with friends. It was always more fun and exciting compared to doing things alone in my room. We used to play all sorts of games together and laugh a lot, and I think that's what made those activities so memorable.",
+        vocab: []
+      },
+      "Are there any differences between the activities you liked when you were a child and those you like now?": {
+        answer: "Yeah, it's like night and day, to be honest. I've kind of grown out of those active outdoor games and shifted towards more relaxing activities. Just giving my houseplants some water or listening to some soft music is more than enough to make me happy now. I guess my lifestyle has simply changed as I've got older.",
+        vocab: [
+          "It's like night and day: Khác nhau hoàn toàn",
+          "Grown out of: Không còn thích / không còn phù hợp nữa"
+        ]
+      },
+
+      // Mirrors
+      "Do you like looking at yourself in the mirror? How often?": {
+        answer: "Yes, definitely! As a girl, I'd say I have a quick glance at myself in the mirror quite frequently throughout the day. I always need to check my reflection when I'm putting together an outfit, applying lipstick, or just tying my hair up. It's just a daily habit to make sure I look presentable before heading out.",
+        vocab: []
+      },
+      "Have you ever bought mirrors?": {
+        answer: "To be honest, I rarely buy them because most of my makeup products, like eyeshadow palettes or pressed powders, already come with a compact mirror. On top of that, I often just use my smartphone camera to check myself when I'm out and about. The only time I actually spent money on one was when I needed a full-length mirror for my bedroom to check my daily outfits.",
+        vocab: [
+          "Wall-mounted mirror: chiếc gương được treo trên tường"
+        ]
+      },
+      "Do you usually take a mirror with you?": {
+        answer: "Not really, I don't carry a separate mirror in my bag. Almost all my daily makeup items have a built-in compact mirror, which is super convenient. Plus, if I really need to fix my hair or adjust my outfit on the go, my phone camera works perfectly fine for that.",
+        vocab: []
+      },
+      "Would you use mirrors to decorate your room?": {
+        answer: "Yeah, absolutely. Mirrors can easily brighten up the room and create a sense of space, especially since my bedroom is on the smaller side. I'd probably choose a simple wall mirror as part of my home decor. I prefer something clean and minimal rather than anything too fancy.",
+        vocab: []
+      },
+
+      // Cars
+      "Do you think car colours are important?": {
+        answer: "Yeah, I think they are, to some extent. Car colours can actually reflect someone's personality. For example, black or grey cars usually look sleek, while brighter colours help cars stand out more on the road.",
+        vocab: [
+          "Reflect someone's personality: thể hiện tính cách",
+          "Sleek: trông sang, bóng bẩy",
+          "Stand out: nổi bật"
+        ]
+      },
+      "Did you enjoy traveling by car when you were a kid?": {
+        answer: "To be completely honest, not really. I used to get terrible carsickness when I was little, so I actually dreaded car journeys. Because of that, my family mostly got around by motorbike instead. But thankfully, I've outgrown that motion sickness now. These days, I much prefer traveling by car just because it shields me from the scorching heat or heavy rain.",
+        vocab: []
+      },
+      "What types of cars do you like?": {
+        answer: "To be honest, I'm not really a car expert, so I don't know much about engines or technical stuff. I mostly just care about the look of the car – like having a nice, modern design or a color that I like. But at the end of the day, the absolute most important thing for me is safety. I would definitely go for a car with good safety features rather than a fast or flashy one.",
+        vocab: [
+          "Safety features: tính năng an toàn tốt"
+        ]
+      },
+      "Do you prefer to be a driver or a passenger?": {
+        answer: "I'd rather be a passenger, to be honest. I can just sit back and relax, listen to music, or chat with people instead of constantly trying to keep an eye on the road. Driving in big cities can be exhausting sometimes.",
+        vocab: [
+          "Sit back and relax: ngồi thư giãn",
+          "Keep an eye on the road: chú ý đường xá"
+        ]
+      },
+      "What do you usually do when there is a traffic jam?": {
+        answer: "Usually, I just listen to music or podcasts to kill time. I try not to get too annoyed because bumper-to-bumper traffic is pretty common where I live. Sometimes I check my messages too, if the traffic completely stops.",
+        vocab: [
+          "Kill time: giết thời gian",
+          "Bumper-to-bumper traffic: kẹt xe kín đường"
+        ]
+      },
+
+      // Watch
+      "Do you wear a watch?": {
+        answer: "Not on a daily basis, to be honest. I do have a smartwatch, but I mostly just put it on when I go for a run because it's great for tracking my health, like my heart rate and calories burned. Besides that, I also own a fashion watch, but I only wear it when it goes well with my outfit.",
+        vocab: []
+      },
+      "Have you ever got a watch as a gift?": {
+        answer: "Yes, actually! My boyfriend got me one for my birthday last year. I'm absolutely in love with it because it has a very elegant vibe. The watch face has some little sparkling stones on it, which totally suits my personal style. Because it's such a meaningful gift, I don't wear it every day. I actually just save it for special occasions since I really cherish it.",
+        vocab: []
+      },
+      "Why do some people wear expensive watches?": {
+        answer: "I guess some people wear expensive watches because they see them as a status symbol. Like, wearing high-end watches can make them look more successful or professional. And some people are genuinely into fashion and watch collecting.",
+        vocab: [
+          "Status symbol: biểu tượng địa vị",
+          "High-end watches: đồng hồ cao cấp"
+        ]
+      },
+      "Do you think it is important to wear a watch? Why?": {
+        answer: "Honestly, not really nowadays, since smartphones can do pretty much everything. But wearing a watch still helps people stay punctual and avoid constantly checking their phone, which can be distracting sometimes. Also, a nice watch can make someone look more put-together.",
+        vocab: [
+          "Punctual: đúng giờ",
+          "Constantly checking their phone: liên tục kiểm tra điện thoại"
+        ]
+      },
+
+      // Tidiness
+      "Do you like to keep things tidy?": {
+        answer: "Yeah, I do, actually. I prefer keeping things organised because it helps me stay focused when I study or work. I can't really think clearly in a cluttered space.",
+        vocab: [
+          "Keeping things organised: giữ mọi thứ ngăn nắp",
+          "Stay focused: tập trung",
+          "Cluttered space: không gian bừa bộn"
+        ]
+      },
+      "Did you use to keep your room tidy as a child?": {
+        answer: "Not really, to be honest. I used to leave things lying around all the time, and my parents kept telling me to clean my room. I've become much tidier now because I realised mess can be pretty distracting.",
+        vocab: [
+          "Leave things lying around: vứt đồ lung tung"
+        ]
+      },
+
+      // Part 2 – A helpful person
+      "Describe a person who often helps others": {
+        answer: "We met back in high school, and interestingly, he was the one who smiled and said hi first. I had a really good first impression of him because he seemed so friendly and easy to talk to. Over time, we started hanging out more often, and we naturally became really close. Now, he's basically the kind of friend I can rely on no matter what.\n\nFirst thing first, I think the feature you'll notice immediately when you first meet him is how supportive he is. And I believe that's exactly why he's always able to help people in a very practical way.\n\nI still remember a time when I was completely overwhelmed with work. I had three deadlines coming up in the same week, and I was just sitting at my desk, staring at my laptop screen for almost 10 minutes without typing anything. My mind was a mess, and I honestly felt like shutting down.\n\nHe noticed something was wrong and came over, but instead of asking too many questions, he just quietly sat next to me. After a few seconds, he said \"Okay, let's take a look at this together.\"\n\nThen he grabbed a random piece of paper and started writing things down for me. He asked me to list everything I had to do, and then he helped me break it into smaller tasks. He even drew little boxes next to each task so I could tick them off one by one.\n\nWhat I found really helpful was the way he sorts everything out. He pointed out that one of my deadlines wasn't actually as urgent as I thought, which immediately took a lot of pressure off me.\n\nAfter about 20–30 minutes, I went from feeling completely stuck to having a clear plan in front of me. I could finally breathe again and focus on one thing at a time.",
+        vocab: [
+          "Story outline: 3 deadlines → staring at laptop → he noticed → sat quietly → wrote tasks on paper → break down → tick boxes → reprioritize → pressure off"
+        ]
+      },
+
+      // Part 2 – A person who looks after nature
+      "Describe a person who likes to look after the natural world": {
+        answer: "We met back in high school, and interestingly, he was the one who smiled and said hi first. I had a really good first impression of him because he seemed so friendly and easy to talk to. Over time, we started hanging out more often, and we naturally became really close.\n\nFirst thing first, I think the feature you'll notice immediately when you first meet my friend is how environmentally conscious he is. And I believe him being so conscious is exactly the reason why he always tries to protect the natural world through his daily habits.\n\nI still remember a time when we were grabbing drinks at a small café. Instead of just receiving the plastic cup, he politely handed his own reusable bottle to the staff and asked if they could pour the drink into it. The staff seemed a bit confused at first, probably because it's not something they see every day, but they still agreed with a friendly smile.\n\nBut what really made me realize this wasn't just a one-off thing was what happened after that. As we were leaving, he picked up an empty plastic bottle someone had left on the table and carried it with him until he found a recycling bin outside.\n\nWhenever we hang out, he always brings his own tote bag, avoids single-use plastics, and even reminds me sometimes, in a very gentle way, to be more mindful about what I use.\n\nTo be honest, since I got to know him, I've become much more environmentally aware.",
+        vocab: [
+          "Story outline: café → no straw → reusable bottle → pick up trash → recycling bin → not one-off → tote bag → avoids plastic → gently reminds me"
+        ]
+      },
+
+      // Part 2 – A child who loves drawing
+      "Describe a child who loves drawing": {
+        answer: "The first person who immediately comes to my mind is Linh, my younger cousin, someone who has a real passion for drawing.\n\nFirst thing first, I think the feature you'll notice immediately when you first meet her is how passionate and focused she is when it comes to drawing. And I believe her being so passionate is exactly the reason why she can spend hours drawing without getting bored.\n\nShe's quite small and usually a bit shy, but whenever she starts drawing, she becomes completely focused and full of energy.\n\nHer parents run a small handmade gift shop near their house, where they sell things like greeting cards and decorations. What's interesting is that she sometimes helps them by creating simple drawings for the shop. For example, she once designed a set of cute animal illustrations that were printed on small cards and used for packaging.\n\nI remember visiting her house one afternoon and seeing her sitting on the floor with colored pencils spread all around her. She was carefully coloring a small drawing of a cat, and every detail — from the eyes to the tiny patterns on the fur — was done with so much patience. She even showed me a notebook where she keeps all her sketches, and I was surprised by how many ideas she had.\n\nLater on, her parents told me that some of her drawings were actually used in their shop, and customers really liked them because they looked very personal and creative.\n\nWhat made me feel especially proud was that, even at such a young age, she wasn't just drawing for fun — she was also contributing to her family in her own small but meaningful way.",
+        vocab: [
+          "Story outline: Linh (cousin) → handmade family shop → she designs animals → floor with pencils → detailed cat drawing → sketch notebook → parents use her designs → customers like it → proud → small but meaningful"
+        ]
+      },
+
+      // Part 2 – A person who makes plans
+      "Describe a person who makes plans a lot": {
+        answer: "We met back in high school, and interestingly, he was the one who smiled and said hi first. I had a really good first impression of him because he seemed so friendly and easy to talk to. Over time, we started hanging out more often, and we naturally became really close.\n\nFirst things first, I think the feature you'll notice immediately when you first meet my friend is how organized and proactive he is. And I believe him being so organized is exactly the reason why he's always the one who makes plans and manages his time so effectively.\n\nI still remember a time when I was complaining about how I couldn't manage my time properly and always felt overwhelmed with my schedule.\n\nInstead of just giving me general advice, he got really excited and started showing me how he actually organizes his life. He opened his laptop and walked me through a few apps he uses to plan his tasks — like Google Calendar and Notion — then showed me how everything is synced with his phone.\n\nWhat impressed me was how detailed everything was. He had plans not just for the day, but also for the whole week and even the month. And every task was clearly written down so he could tick them off one by one after finishing them.\n\nHe also showed me a small diary he carries around, where he writes down both important deadlines and small daily goals. And surprisingly, he still uses simple sticky notes, which he puts around his room so he can constantly remind himself of what needs to be done.\n\nOn top of that, he regularly checks his calendar on his phone and adjusts his schedule whenever something unexpected comes up.",
+        vocab: [
+          "Story outline: overwhelmed → he got excited → showed apps (Google Calendar, Notion) → everything synced → daily/weekly/monthly plans → tick off → diary + sticky notes → check calendar → adjust"
+        ]
+      }
+    };
+
+    let currentQuestion = null;
     let currentPart = 1;
 
     function storageKey() {
@@ -799,6 +1030,8 @@
       spinning = true;
       document.getElementById('resultText').textContent = '—';
       document.getElementById('topicBadge').textContent = '';
+      document.getElementById('hintRow').style.display = 'none';
+      document.getElementById('hintPanel').style.display = 'none';
       document.querySelector('.hiddenText').textContent = '...';
 
       const extra = 360 * (5 + Math.floor(Math.random() * 4));
@@ -812,6 +1045,12 @@
         document.querySelector('.hiddenText').textContent = picked.question;
         document.getElementById('topicBadge').innerHTML = `<span class="topic-badge">📌 ${picked.topic}</span>`;
         document.getElementById('resultText').textContent = picked.question;
+
+        // Show hint button if a script exists for this question
+        currentQuestion = picked.question;
+        document.getElementById('hintPanel').style.display = 'none';
+        document.getElementById('hintBtn').textContent = '💡 Xem gợi ý';
+        document.getElementById('hintRow').style.display = HINTS[currentQuestion] ? 'flex' : 'none';
 
         // Show & reset timer after spin
         stopTimer();
@@ -954,6 +1193,9 @@
       document.querySelector('.hiddenText').textContent = 'Nhấn để quay!';
       document.getElementById('resultText').textContent = '—';
       document.getElementById('topicBadge').textContent = '';
+      document.getElementById('hintRow').style.display = 'none';
+      document.getElementById('hintPanel').style.display = 'none';
+      currentQuestion = null;
       alert("✅ Đã khôi phục câu hỏi mặc định!");
     }
 
@@ -1104,6 +1346,9 @@
     function switchPart(part) {
       showTimer(false);
       stopTimer();
+      currentQuestion = null;
+      document.getElementById('hintRow').style.display = 'none';
+      document.getElementById('hintPanel').style.display = 'none';
       currentPart = part;
       document.getElementById('tab1').classList.toggle('active', part === 1);
       document.getElementById('tab2').classList.toggle('active', part === 2);
@@ -1116,6 +1361,29 @@
       document.getElementById('addPanel').style.display = 'none';
       document.getElementById('filterBody').classList.remove('open');
       populateTopicSelect();
+    }
+
+    function toggleHint() {
+      const hint = HINTS[currentQuestion];
+      if (!hint) return;
+      const panel = document.getElementById('hintPanel');
+      const btn = document.getElementById('hintBtn');
+      if (panel.style.display === 'none') {
+        document.getElementById('hintAnswer').textContent = hint.answer;
+        const vocabEl = document.getElementById('hintVocab');
+        if (hint.vocab && hint.vocab.length > 0) {
+          vocabEl.innerHTML = '<div class="hint-vocab-title">📚 Từ vựng & cụm hay</div><ul>' +
+            hint.vocab.map(v => '<li>' + v + '</li>').join('') + '</ul>';
+          vocabEl.style.display = 'block';
+        } else {
+          vocabEl.style.display = 'none';
+        }
+        panel.style.display = 'block';
+        btn.textContent = '🙈 Ẩn gợi ý';
+      } else {
+        panel.style.display = 'none';
+        btn.textContent = '💡 Xem gợi ý';
+      }
     }
 
     updateWheel();
