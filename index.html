@@ -294,6 +294,22 @@
       overflow-y: auto;
     }
 
+    .topic-checkbox-list.q-mode {
+      grid-template-columns: 1fr;
+      max-height: 280px;
+    }
+
+    .q-group-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #3730a3;
+      background: #e0e7ff;
+      border-radius: 5px;
+      padding: 2px 7px;
+      margin-top: 0.35rem;
+      grid-column: 1 / -1;
+    }
+
     .topic-checkbox-item {
       display: flex;
       align-items: center;
@@ -301,6 +317,10 @@
       font-size: 0.85rem;
       color: #374151;
       cursor: pointer;
+    }
+
+    .topic-checkbox-list.q-mode .topic-checkbox-item {
+      font-size: 0.82rem;
     }
 
     .topic-checkbox-item input { cursor: pointer; accent-color: #4f46e5; }
@@ -1151,10 +1171,18 @@
 
     function getFilteredItems() {
       const data = loadQuestions();
-      const checked = getCheckedTopics();
       const list = [];
-      for (const topic of checked) {
-        for (const q of (data[topic] || [])) list.push({ topic, question: q });
+      if (currentPart === 1) {
+        // Topic-level filter
+        const checked = getCheckedTopics();
+        for (const topic of checked) {
+          for (const q of (data[topic] || [])) list.push({ topic, question: q });
+        }
+      } else {
+        // Question-level filter (Part 2)
+        document.querySelectorAll('.topic-cb:checked').forEach(cb => {
+          list.push({ topic: cb.dataset.topic, question: cb.value });
+        });
       }
       return list;
     }
@@ -1256,24 +1284,53 @@
         sel.appendChild(opt);
       });
 
-      // Populate checkbox list — keep previously checked topics checked
-      const prevChecked = new Set(getCheckedTopics());
+      // Populate checkbox list
+      const prevCheckedVals = new Set(getCheckedTopics());
       const list = document.getElementById('topicCheckboxList');
       list.innerHTML = '';
-      topics.forEach(t => {
-        const lbl = document.createElement('label');
-        lbl.className = 'topic-checkbox-item';
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.className = 'topic-cb';
-        cb.value = t;
-        // Check if previously selected, or default to all checked
-        cb.checked = prevChecked.size === 0 ? true : prevChecked.has(t);
-        cb.addEventListener('change', () => { updateSelCount(); updateWheel(); });
-        lbl.appendChild(cb);
-        lbl.appendChild(document.createTextNode(t));
-        list.appendChild(lbl);
-      });
+
+      if (currentPart === 1) {
+        // Topic-level checkboxes
+        list.classList.remove('q-mode');
+        topics.forEach(t => {
+          const lbl = document.createElement('label');
+          lbl.className = 'topic-checkbox-item';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.className = 'topic-cb';
+          cb.value = t;
+          cb.checked = prevCheckedVals.size === 0 ? true : prevCheckedVals.has(t);
+          cb.addEventListener('change', () => { updateSelCount(); updateWheel(); });
+          lbl.appendChild(cb);
+          lbl.appendChild(document.createTextNode(t));
+          list.appendChild(lbl);
+        });
+      } else {
+        // Question-level checkboxes grouped by topic (Part 2)
+        list.classList.add('q-mode');
+        topics.forEach(t => {
+          const qs = data[t] || [];
+          if (qs.length === 0) return;
+          const header = document.createElement('div');
+          header.className = 'q-group-header';
+          header.textContent = t;
+          list.appendChild(header);
+          qs.forEach(q => {
+            const lbl = document.createElement('label');
+            lbl.className = 'topic-checkbox-item';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.className = 'topic-cb';
+            cb.value = q;
+            cb.dataset.topic = t;
+            cb.checked = prevCheckedVals.size === 0 ? true : prevCheckedVals.has(q);
+            cb.addEventListener('change', () => { updateSelCount(); updateWheel(); });
+            lbl.appendChild(cb);
+            lbl.appendChild(document.createTextNode(q));
+            list.appendChild(lbl);
+          });
+        });
+      }
 
       updateSelCount();
       updateWheel();
