@@ -199,7 +199,18 @@
       gap: 6px;
     }
 
-    .topic-section li span { flex: 1; }
+    .topic-section li span {
+      flex: 1;
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 1px 3px;
+      transition: background 0.12s;
+    }
+
+    .topic-section li span:hover {
+      background: #e0e7ff;
+      color: #3730a3;
+    }
 
     .del-btn {
       background: none;
@@ -1359,6 +1370,22 @@
       alert('✅ Đã thêm vào chủ đề "' + topic + '"!');
     }
 
+    function showHintFor(q, topic) {
+      const hints = currentUser === 'linh' ? HINTS_LINH : HINTS_TRA;
+      currentQuestion = q;
+      // Update result box
+      document.getElementById('topicBadge').innerHTML = `<span class="topic-badge">📌 ${topic}</span>`;
+      document.getElementById('resultText').textContent = q;
+      // Show/hide hint button
+      document.getElementById('hintPanel').style.display = 'none';
+      document.getElementById('hintBtn').textContent = '💡 Xem gợi ý';
+      document.getElementById('hintRow').style.display = hints[q] ? 'flex' : 'none';
+      // If hint exists, open it immediately
+      if (hints[q]) toggleHint();
+      // Scroll result into view
+      document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     function renderOptionList() {
       const data = loadQuestions();
       const container = document.getElementById('optionContent');
@@ -1374,6 +1401,8 @@
           const li = document.createElement('li');
           const span = document.createElement('span');
           span.textContent = q;
+          span.title = 'Click để xem gợi ý';
+          span.onclick = () => showHintFor(q, topic);
           const btn = document.createElement('button');
           btn.className = 'del-btn';
           btn.title = 'Xóa câu này';
