@@ -443,6 +443,31 @@
       margin-bottom: 0.25rem;
       line-height: 1.55;
     }
+
+    /* ── User tabs ── */
+    .user-tabs {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .user-tab {
+      padding: 0.3rem 1.1rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: 2px solid #d97706;
+      border-radius: 20px;
+      cursor: pointer;
+      background: #fff;
+      color: #d97706;
+    }
+
+    .user-tab.active {
+      background: #d97706;
+      color: #fff;
+    }
+
+    .user-tab:hover:not(.active) { background: #fef3c7; }
   </style>
 </head>
 <body>
@@ -453,6 +478,11 @@
   <div class="part-tabs">
     <button class="part-tab active" id="tab1" onclick="switchPart(1)">Part 1 – Questions</button>
     <button class="part-tab" id="tab2" onclick="switchPart(2)">Part 2 – Cue Cards</button>
+  </div>
+
+  <div class="user-tabs">
+    <button class="user-tab active" id="userTabLinh" onclick="switchUser('linh')">👩 Linh</button>
+    <button class="user-tab" id="userTabTra" onclick="switchUser('tra')">� Trà</button>
   </div>
 
   <div class="wheel-wrapper">
@@ -774,7 +804,7 @@
     };
 
     // ── Hint scripts (question text → {answer, vocab[]}) ───────────────
-    const HINTS = {
+    const HINTS_LINH = {
       // Childhood activities
       "What are your favourite activities?": {
         answer: "Lately, I've been really into collecting leafy plants in my free time. Unlike traditional flowers, these plants are grown mainly for the unique beauty of their leaves. I can spend hours admiring the incredible variety of shapes, colours, and intricate patterns on them, which is a great way to wind down after a long day.",
@@ -928,7 +958,149 @@
       }
     };
 
+    // ── Trà's hint scripts ──────────────────────────────────────────────
+    const HINTS_TRA = {
+      // Mirrors
+      "Do you like looking at yourself in the mirror? How often?": {
+        answer: "I do, but not that often. I normally look in the mirror before leaving home just to make sure everything looks okay. Sometimes I check my hair or clothes quickly during the day. It's more about looking neat than admiring myself.",
+        vocab: [
+          "Wall-mounted mirror: chiếc gương treo tường"
+        ]
+      },
+      "Have you ever bought mirrors?": {
+        answer: "Yes, but not for myself. I don't really use mirrors that often, but I once bought one as a gift for my friend. She cares a lot about her appearance, so I thought it would really suit her.",
+        vocab: []
+      },
+      "Do you usually take a mirror with you?": {
+        answer: "No, not really. These days I usually use my phone camera instead if I want to check my appearance. Carrying a mirror around feels a bit inconvenient to me. So I don't think it's necessary.",
+        vocab: []
+      },
+      "Would you use mirrors to decorate your room?": {
+        answer: "Probably not. I know mirrors can make a room look brighter and create a sense of space, but they're not really my cup of tea. I prefer decorating my room with tech devices or electronic equipment because they make the space look more modern and interesting.",
+        vocab: [
+          "Not my cup of tea: không phải sở thích của tôi"
+        ]
+      },
+
+      // Childhood activities
+      "What are your favourite activities?": {
+        answer: "I mostly enjoy relaxing activities these days. For example, I like watching YouTube videos, listening to music, or just lying down and taking a break after work. Sometimes I also go out for coffee with friends. Those simple activities help me recharge.",
+        vocab: [
+          "Recharge: nạp lại năng lượng"
+        ]
+      },
+      "What were your favourite activities when you were a child?": {
+        answer: "When I was a kid, I spent most of my time outside with my friends. We used to ride bicycles, play football, and run around the neighborhood. Back then, entertainment was much simpler, but we still had a lot of fun. I honestly miss that carefree feeling sometimes.",
+        vocab: [
+          "Carefree: vô lo vô nghĩ"
+        ]
+      },
+      "Did you prefer to do activities alone or with a group of people when you were a child?": {
+        answer: "Definitely with a group. I was quite sociable as a child, so I loved playing with friends. Group activities were always more exciting because everyone could join in and have fun together. Playing alone felt a bit boring to me.",
+        vocab: []
+      },
+      "Are there any differences between the activities you liked when you were a child and those you like now?": {
+        answer: "Yes, my interests have changed quite a lot. I used to enjoy physical activities and outdoor games, but now I prefer quieter and less tiring things. I think it's because life becomes busier when you get older. So relaxing activities feel more appealing now.",
+        vocab: []
+      },
+
+      // Cars
+      "Do you think car colours are important?": {
+        answer: "Yeah, I think car colours are quite important because they can reflect someone's personality. Personally, I prefer dark colours like black or grey because they look elegant and premium. Bright colours can also make a car stand out more on the road.",
+        vocab: [
+          "Reflect someone's personality: thể hiện tính cách",
+          "Elegant and premium: sang trọng và cao cấp",
+          "Stand out: nổi bật"
+        ]
+      },
+      "Did you enjoy traveling by car when you were a kid?": {
+        answer: "Not really. I used to get carsick quite easily when I was a child, so long trips were uncomfortable for me. But now I enjoy traveling by car more because it feels safer and more comfortable.",
+        vocab: []
+      },
+      "What types of cars do you like?": {
+        answer: "I personally prefer sedans. I know many people choose SUVs because they are bigger and more practical for families, but I care more about the driving experience. Sedans usually feel more stable and comfortable to drive, and they often have better features at the same price.",
+        vocab: [
+          "Sedan vs SUV: xe du lịch vs xe gầm cao",
+          "Stable: ổn định"
+        ]
+      },
+      "Do you prefer to be a driver or a passenger?": {
+        answer: "I prefer being the driver. I enjoy controlling the car and paying attention to the driving feeling. Even though traffic can be stressful sometimes, I still think driving is quite relaxing.",
+        vocab: []
+      },
+      "What do you usually do when there is a traffic jam?": {
+        answer: "I usually listen to music or podcasts to relax. Sometimes I also check my messages or think about my work plans for the day. I try not to get too annoyed because traffic jams are very common where I live.",
+        vocab: []
+      },
+
+      // Watch
+      "Do you wear a watch?": {
+        answer: "Not really. I actually enjoy learning about watches, especially mechanical ones, but I don't really like wearing them every day. I usually only wear a watch on important occasions.",
+        vocab: [
+          "Mechanical watch: đồng hồ cơ"
+        ]
+      },
+      "Have you ever got a watch as a gift?": {
+        answer: "Yes. I have an old Longines watch from my uncle, and it's very meaningful to me. He got it during the Vietnam War many years ago, so it has a lot of history behind it. I rarely wear it, but I always keep it carefully.",
+        vocab: []
+      },
+      "Why do some people wear expensive watches?": {
+        answer: "I think expensive watches can show someone's success and personality. For many men, watches are more than just jewelry because they are also mechanical masterpieces. Wearing a luxury watch can make people feel more confident and sophisticated.",
+        vocab: [
+          "Mechanical masterpiece: kiệt tác cơ học",
+          "Sophisticated: lịch lãm, tinh tế"
+        ]
+      },
+      "Do you think it is important to wear a watch? Why?": {
+        answer: "I think it depends on the situation. Nowadays people can check the time on their phones, so watches are not really necessary anymore. For me, a watch is more like a fashion accessory that I only wear on special occasions.",
+        vocab: []
+      },
+
+      // Tidiness
+      "Do you like to keep things tidy?": {
+        answer: "To be honest, I'm a slightly messy person. I don't spend much time organizing my workspace, especially when I'm busy. But I still try to keep things clean enough so I can find what I need easily.",
+        vocab: []
+      },
+      "Did you use to keep your room tidy as a child?": {
+        answer: "No, not really. When I was a child, my mother usually cleaned my room for me. I often left my toys and books everywhere, so she always reminded me to tidy up.",
+        vocab: []
+      },
+
+      // Part 2 – Describe a child who loves drawing (Trà's version)
+      "Describe a child who loves drawing": {
+        answer: "The first person who immediately comes to my mind is my younger cousin, Linh, who is around 10 years old now.\n\nShe's naturally a quiet and slightly shy kid, but whenever she starts drawing, she becomes incredibly focused and energetic. I think the first thing people notice about her is how passionate she is about art. She can literally spend hours sitting with her sketchbook without getting bored.\n\nShe especially loves drawing cute animals and cartoon-style characters. In fact, her room is filled with little drawings taped to the wall, and she even carries a small notebook around so she can quickly sketch new ideas whenever inspiration comes to her.\n\nWhat makes her stand out to me, though, is not only her creativity but also her willingness to help other people through her drawings.\n\nA few months ago, her parents joined a volunteer activity at a shelter for orphaned children, and she was invited to come along. The group planned to repaint some of the walls to make the place feel more colorful and welcoming for the kids living there.\n\nAt first, everyone thought she would just watch quietly, but surprisingly, she became one of the most enthusiastic people there. She started drawing cartoon animals, rainbows, flowers, and little clouds on the wall, while the other volunteers helped color everything in.\n\nI still remember how excited the children at the shelter looked when they gathered around her and asked questions about the drawings. Some of them even joined in and painted together with her.\n\nWhat touched me the most was seeing how proud her parents were. I think they realized that, even though she was still very young, she was already able to use her talent to bring happiness to other people.\n\nAnd honestly, that experience made me admire her a lot more, because her drawings were no longer just a hobby — they had become something meaningful.",
+        vocab: [
+          "Story outline: cousin Linh → quiet + shy → passionate about drawing → cute animals + cartoons → sketchbook + notebook → volunteer at orphan shelter → painted walls → children got excited → some painted with her → parents felt proud → drawings became meaningful"
+        ]
+      },
+
+      // Part 2 – Describe a person who often helps others (Trà's version — cousin Linh at orphan shelter)
+      "Describe a person who often helps others": {
+        answer: "The first person who immediately comes to my mind is my younger cousin, Linh, who is around 10 years old now.\n\nShe's naturally a quiet and slightly shy kid, but whenever she starts drawing, she becomes incredibly focused and full of energy. I think the first thing people notice about her is how passionate she is about art — she can literally spend hours sitting with her sketchbook without getting bored.\n\nWhat makes her stand out to me, though, is not only her creativity but also her genuine willingness to use her talent to help other people.\n\nA few months ago, her parents joined a volunteer activity at a shelter for orphaned children, and she was invited to come along. The group planned to repaint some of the walls to make the place feel more colorful and welcoming for the kids living there.\n\nAt first, everyone thought she would just watch quietly, but surprisingly, she became one of the most enthusiastic people there. She started drawing cartoon animals, rainbows, flowers, and little clouds on the wall, while the other volunteers helped color everything in.\n\nI still remember how excited the children at the shelter looked when they gathered around her and asked questions about the drawings. Some of them even joined in and painted together with her.\n\nWhat touched me the most was seeing how proud her parents were. I think they realized that, even though she was still very young, she was already able to bring real happiness to other people through something as simple as drawing.\n\nAnd honestly, that experience made me admire her a lot more, because her drawings were no longer just a hobby — they had become a way of helping others.",
+        vocab: [
+          "Story outline: cousin Linh → 10 years old → quiet + shy → passionate about drawing → volunteer at orphan shelter → painted walls with cartoons, flowers, rainbows → children got excited → some painted with her → parents felt proud → drawings became a way of helping others"
+        ]
+      },
+
+      // Part 2 – Describe a person who makes plans a lot (Trà's version — Minh)
+      "Describe a person who makes plans a lot": {
+        answer: "The person I'd like to talk about is a man named Minh, whom I met through a volunteer group a few years ago.\n\nThe first thing people usually notice about him is how organized and proactive he is. He's the type of person who plans everything carefully, even small activities that most people wouldn't normally think too much about.\n\nAt the same time, he's also extremely environmentally conscious, which is why he spends a lot of his free time joining environmental projects and encouraging other people to protect nature.\n\nThe most memorable experience I had with him was a beach clean-up event that he organized near the coastline outside the city.\n\nAt first, I honestly thought it would just be a simple volunteering activity where people showed up and picked up trash together. But when I arrived, I realized how carefully everything had been planned.\n\nHe had already divided volunteers into different groups, prepared gloves, trash bags, drinking water, and even created a schedule for collecting and sorting the waste. Some people were responsible for plastic bottles, while others handled glass or larger pieces of trash.\n\nWhat impressed me the most was that he had even prepared backup plans in case the weather changed suddenly. He checked the forecast regularly and adjusted the timetable throughout the day so everything could still run smoothly.\n\nEven during breaks, he kept reminding everyone not to use too many disposable items and encouraged us to bring reusable bottles instead.\n\nThanks to his planning skills, the event turned out to be really successful. By the end of the day, we had collected a huge amount of waste along the beach, and the whole area looked noticeably cleaner.\n\nTo be honest, before meeting him, I rarely thought deeply about environmental protection. But after joining that event, I became much more aware of how small actions and good organization can actually make a real difference.",
+        vocab: [
+          "Story outline: Minh → met through volunteer group → organized + proactive + environmentally conscious → beach clean-up event → divided groups → prepared gloves/bags/water → schedule → sorted waste → backup plans for weather → reminded about reusable bottles → beach became cleaner → became more aware of environment"
+        ]
+      },
+
+      // Part 2 – Describe a person who often looks after the natural world (same Minh story)
+      "Describe a person who likes to look after the natural world": {
+        answer: "The person I'd like to talk about is a man named Minh, whom I met through a volunteer group a few years ago.\n\nThe first thing people usually notice about him is how environmentally conscious he is. He genuinely cares about protecting nature, and this shows in everything he does — from the way he organizes events to the small daily choices he makes.\n\nThe most memorable experience I had with him was a beach clean-up event that he organized near the coastline outside the city.\n\nAt first, I honestly thought it would just be a simple volunteering activity where people showed up and picked up trash together. But when I arrived, I realized how carefully everything had been planned.\n\nHe had already divided volunteers into different groups, prepared gloves, trash bags, drinking water, and even created a schedule for collecting and sorting the waste. Some people were responsible for plastic bottles, while others handled glass or larger pieces of trash.\n\nWhat impressed me the most was that he had even prepared backup plans in case the weather changed suddenly. He checked the forecast regularly and adjusted the timetable throughout the day so everything could still run smoothly.\n\nEven during breaks, he kept reminding everyone not to use too many disposable items and encouraged us to bring reusable bottles instead.\n\nThanks to his effort, the event turned out to be really successful. By the end of the day, we had collected a huge amount of waste along the beach, and the whole area looked noticeably cleaner.\n\nTo be honest, before meeting him, I rarely thought deeply about environmental protection. But after joining that event, I became much more aware of how small actions can actually make a real difference.",
+        vocab: [
+          "Story outline: Minh → volunteer group → environmentally conscious → beach clean-up → divided groups → prepared everything carefully → sorted waste → backup plans → reminded about reusable bottles → beach became cleaner → made me more aware of protecting nature"
+        ]
+      }
+    };
+
     let currentQuestion = null;
+    let currentUser = 'linh';
     let currentPart = 1;
 
     function storageKey() {
@@ -1050,7 +1222,8 @@
         currentQuestion = picked.question;
         document.getElementById('hintPanel').style.display = 'none';
         document.getElementById('hintBtn').textContent = '💡 Xem gợi ý';
-        document.getElementById('hintRow').style.display = HINTS[currentQuestion] ? 'flex' : 'none';
+        const hints = currentUser === 'linh' ? HINTS_LINH : HINTS_TRA;
+        document.getElementById('hintRow').style.display = hints[currentQuestion] ? 'flex' : 'none';
 
         // Show & reset timer after spin
         stopTimer();
@@ -1364,7 +1537,8 @@
     }
 
     function toggleHint() {
-      const hint = HINTS[currentQuestion];
+      const hints = currentUser === 'linh' ? HINTS_LINH : HINTS_TRA;
+      const hint = hints[currentQuestion];
       if (!hint) return;
       const panel = document.getElementById('hintPanel');
       const btn = document.getElementById('hintBtn');
@@ -1383,6 +1557,19 @@
       } else {
         panel.style.display = 'none';
         btn.textContent = '💡 Xem gợi ý';
+      }
+    }
+
+    function switchUser(user) {
+      currentUser = user;
+      document.getElementById('userTabLinh').classList.toggle('active', user === 'linh');
+      document.getElementById('userTabTra').classList.toggle('active', user === 'tra');
+      // Re-evaluate hint button visibility for current question
+      if (currentQuestion) {
+        const hints = currentUser === 'linh' ? HINTS_LINH : HINTS_TRA;
+        document.getElementById('hintPanel').style.display = 'none';
+        document.getElementById('hintBtn').textContent = '💡 Xem gợi ý';
+        document.getElementById('hintRow').style.display = hints[currentQuestion] ? 'flex' : 'none';
       }
     }
 
